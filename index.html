@@ -24,11 +24,6 @@ body {
   border-radius: 16px;
   padding: 15px;
   margin-bottom: 12px;
-  transition: 0.3s;
-}
-
-.glass:hover {
-  transform: translateY(-3px) scale(1.02);
 }
 
 .cards {
@@ -39,8 +34,6 @@ body {
 
 .card {
   text-align: center;
-  font-size: 18px;
-  animation: fadeIn 0.5s ease;
 }
 
 .card span {
@@ -62,10 +55,6 @@ button {
   color: white;
 }
 
-button:hover {
-  opacity: 0.8;
-}
-
 table {
   width: 100%;
   border-collapse: collapse;
@@ -82,9 +71,6 @@ tr:hover {
   background: rgba(255,255,255,0.1);
 }
 
-.dark { background: #0f2027; }
-
-/* Modal */
 .modal {
   display: none;
   position: fixed;
@@ -109,12 +95,6 @@ input, select {
   padding:8px;
   border-radius:6px;
   border:none;
-}
-
-/* Animation */
-@keyframes fadeIn {
-  from { opacity:0; transform:translateY(10px);}
-  to { opacity:1; transform:translateY(0);}
 }
 </style>
 </head>
@@ -186,7 +166,6 @@ Balance
 
 </div>
 
-<!-- Modal -->
 <div class="modal" id="modal">
 <div class="modal-content">
 <h3>Add Transaction</h3>
@@ -205,203 +184,163 @@ Balance
 
 const state = {
  transactions : JSON.parse(localStorage.getItem("data")) || [
-
-{date:"2026-03-25", amount:45000, category:"Salary", type:"income"},
-{date:"2026-03-26", amount:2000, category:"Freelance", type:"income"},
-{date:"2026-03-27", amount:500, category:"Food", type:"expense"},
-{date:"2026-03-27", amount:1200, category:"Groceries", type:"expense"},
-{date:"2026-03-28", amount:800, category:"Transport", type:"expense"},
-{date:"2026-03-28", amount:1500, category:"Shopping", type:"expense"},
-{date:"2026-03-29", amount:3000, category:"Online Course", type:"expense"},
-{date:"2026-03-30", amount:7000, category:"Part-time Job", type:"income"},
-{date:"2026-03-30", amount:250, category:"Snacks", type:"expense"},
-{date:"2026-03-31", amount:4000, category:"Investment Return", type:"income"},
-{date:"2026-03-31", amount:1000, category:"Electricity Bill", type:"expense"},
-{date:"2026-04-01", amount:600, category:"Internet Bill", type:"expense"},
-{date:"2026-04-01", amount:1200, category:"Fuel", type:"expense"},
-{date:"2026-04-02", amount:500, category:"Movie", type:"expense"},
-{date:"2026-04-02", amount:10000, category:"Bonus", type:"income"},
-{date:"2026-04-02", amount:2000, category:"Dining Out", type:"expense"},
-{date:"2026-04-03", amount:1500, category:"Clothing", type:"expense"},
-{date:"2026-04-03", amount:3500, category:"Stock Profit", type:"income"},
-{date:"2026-04-04", amount:900, category:"Medicine", type:"expense"},
-{date:"2026-04-04", amount:500, category:"Mobile Recharge", type:"expense"},
-{date:"2026-04-05", amount:8000, category:"Freelance Project", type:"income"},
-{date:"2026-04-05", amount:2200, category:"Shopping", type:"expense"},
-{date:"2026-04-06", amount:300, category:"Tea & Snacks", type:"expense"},
-{date:"2026-04-06", amount:1500, category:"Transport", type:"expense"},
-{date:"2026-04-07", amount:20000, category:"Salary Advance", type:"income"},
-{date:"2026-04-07", amount:2500, category:"Rent", type:"expense"}
-
-]
+  {date:"2026-03-25", amount:45000, category:"Salary", type:"income"},
+  {date:"2026-03-27", amount:500, category:"Food", type:"expense"}
+ ],
+ filter: "all" // ✅ FIXED
 };
 
 let pieChart, lineChart;
 
 function save(){
-localStorage.setItem("data", JSON.stringify(state.transactions));
+ localStorage.setItem("data", JSON.stringify(state.transactions));
 }
 
 function calculate(){
-let income=0, expense=0;
+ let income=0, expense=0;
 
-state.transactions.forEach(t=>{
-if(t.type==="income") income+=t.amount;
-else expense+=t.amount;
-});
+ state.transactions.forEach(t=>{
+  if(t.type==="income") income+=t.amount;
+  else expense+=t.amount;
+ });
 
-document.getElementById("income").innerText="₹"+income;
-document.getElementById("expense").innerText="₹"+expense;
-document.getElementById("balance").innerText="₹"+(income-expense);
-
-// Insight
-let max = state.transactions.filter(t=>t.type==="expense")
-.sort((a,b)=>b.amount-a.amount)[0];
-
-document.getElementById("insight").innerText =
-max ? `You spend most on ${max.category}` : "No data";
+ document.getElementById("income").innerText="₹"+income;
+ document.getElementById("expense").innerText="₹"+expense;
+ document.getElementById("balance").innerText="₹"+(income-expense);
 }
 
 function renderTable(){
-let body=document.getElementById("tableBody");
-let search=document.getElementById("search").value.toLowerCase();
+ let body=document.getElementById("tableBody");
+ let search=document.getElementById("search").value.toLowerCase();
 
-body.innerHTML="";
+ body.innerHTML="";
 
-let filtered = state.transactions
-.filter(t=>state.filter==="all"||t.type===state.filter)
-.filter(t=>t.category.toLowerCase().includes(search));
+ let filtered = state.transactions
+  .filter(t=>state.filter==="all"||t.type===state.filter)
+  .filter(t=>t.category.toLowerCase().includes(search));
 
-if(filtered.length===0){
-body.innerHTML="<tr><td colspan='5'>No data</td></tr>";
-return;
-}
+ if(filtered.length===0){
+  body.innerHTML="<tr><td colspan='5'>No data</td></tr>";
+  return;
+ }
 
-filtered.forEach((t,i)=>{
-body.innerHTML+=`
-<tr>
-<td>${t.date}</td>
-<td class="${t.type==='income'?'income-text':'expense-text'}">₹${t.amount}</td>
-<td>${t.category}</td>
-<td>${t.type}</td>
-<td>
-<button onclick="deleteTransaction(${i})">Delete</button>
-</td>
-</tr>`;
-});
+ filtered.forEach((t)=>{
+  const index = state.transactions.indexOf(t); // ✅ FIXED
+
+  body.innerHTML+=`
+  <tr>
+  <td>${t.date}</td>
+  <td class="${t.type==='income'?'income-text':'expense-text'}">₹${t.amount}</td>
+  <td>${t.category}</td>
+  <td>${t.type}</td>
+  <td>
+  <button onclick="deleteTransaction(${index})">Delete</button>
+  </td>
+  </tr>`;
+ });
 }
 
 function setFilter(type){
-state.filter=type;
-renderTable();
+ state.filter=type;
+ renderTable();
 }
 
 function openModal(){
-if(getRole()!=="admin") return alert("Admin only");
-document.getElementById("modal").style.display="flex";
+ if(getRole()!=="admin") return alert("Admin only");
+ document.getElementById("modal").style.display="flex";
 }
 
 function closeModal(){
-document.getElementById("modal").style.display="none";
+ document.getElementById("modal").style.display="none";
 }
 
 function addTransaction(){
-let amount = Number(document.getElementById("amount").value);
-let category = document.getElementById("category").value;
-let type = document.getElementById("type").value;
+ let amount = Number(document.getElementById("amount").value);
+ let category = document.getElementById("category").value;
+ let type = document.getElementById("type").value;
 
-if(!amount || !category) return alert("Invalid input");
+ if(!amount || !category) return alert("Invalid input");
 
-state.transactions.push({
-date:new Date().toISOString().split("T")[0],
-amount, category, type
-});
+ state.transactions.push({
+  date:new Date().toISOString().split("T")[0],
+  amount, category, type
+ });
 
-closeModal();
-save();
-update();
+ closeModal();
+ save();
+ update();
 }
 
 function deleteTransaction(i){
-if(getRole()!=="admin") return alert("Admin only");
+ if(getRole()!=="admin") return alert("Admin only");
 
-if(confirm("Delete this transaction?")){
-state.transactions.splice(i,1);
-save();
-update();
-}
+ if(confirm("Delete this transaction?")){
+  state.transactions.splice(i,1);
+  save();
+  update();
+ }
 }
 
 function sortByAmount(){
-state.transactions.sort((a,b)=>b.amount-a.amount);
-renderTable();
+ state.transactions.sort((a,b)=>b.amount-a.amount);
+ renderTable();
 }
 
 function drawCharts(){
 
-if(pieChart) pieChart.destroy();
-if(lineChart) lineChart.destroy();
+ if(pieChart) pieChart.destroy();
+ if(lineChart) lineChart.destroy();
 
-pieChart = new Chart(document.getElementById("pieChart"),{
-type:"pie",
-data:{
-labels:state.transactions.map(t=>t.category),
-datasets:[{
-data:state.transactions.map(t=>t.amount)
-}]
-},
-options:{
-plugins:{
-legend:{ labels:{ color:"white" }}
-}
-}
-});
+ pieChart = new Chart(document.getElementById("pieChart"),{
+  type:"pie",
+  data:{
+   labels:state.transactions.map(t=>t.category),
+   datasets:[{
+    data:state.transactions.map(t=>t.amount)
+   }]
+  }
+ });
 
-lineChart = new Chart(document.getElementById("lineChart"),{
-type:"line",
-data:{
-labels:state.transactions.map(t=>t.date),
-datasets:[{
-label:"Trend",
-data:state.transactions.map(t=>t.amount),
-borderColor:"#00c6ff",
-tension:0.4
-}]
-},
-options:{
-plugins:{
-legend:{ labels:{ color:"white" }}
-}
-}
-});
+ lineChart = new Chart(document.getElementById("lineChart"),{
+  type:"line",
+  data:{
+   labels:state.transactions.map(t=>t.date),
+   datasets:[{
+    label:"Trend",
+    data:state.transactions.map(t=>t.amount),
+    borderColor:"#00c6ff",
+    tension:0.4
+   }]
+  }
+ });
 }
 
 function exportCSV(){
-let csv="Date,Amount,Category,Type\n";
-state.transactions.forEach(t=>{
-csv+=`${t.date},${t.amount},${t.category},${t.type}\n`;
-});
+ let csv="Date,Amount,Category,Type\n";
+ state.transactions.forEach(t=>{
+  csv+=`${t.date},${t.amount},${t.category},${t.type}\n`;
+ });
 
-let blob=new Blob([csv],{type:"text/csv"});
-let url=URL.createObjectURL(blob);
-let a=document.createElement("a");
-a.href=url;
-a.download="transactions.csv";
-a.click();
+ let blob=new Blob([csv],{type:"text/csv"});
+ let url=URL.createObjectURL(blob);
+ let a=document.createElement("a");
+ a.href=url;
+ a.download="transactions.csv";
+ a.click();
 }
 
 function toggleDark(){
-document.body.classList.toggle("dark");
+ document.body.classList.toggle("dark");
 }
 
 function getRole(){
-return document.getElementById("role").value;
+ return document.getElementById("role").value;
 }
 
 function update(){
-calculate();
-renderTable();
-drawCharts();
+ calculate();
+ renderTable();
+ drawCharts();
 }
 
 update();
@@ -409,4 +348,4 @@ update();
 </script>
 
 </body>
-  </html>
+                                                    </html>
