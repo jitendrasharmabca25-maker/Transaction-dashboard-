@@ -2,35 +2,55 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Finance Dashboard - Final</title>
+<title>Finance Dashboard Pro+</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {
   margin: 0;
   font-family: 'Segoe UI';
-  background: linear-gradient(135deg,#1d2671,#c33764);
+  background: linear-gradient(135deg,#141e30,#243b55);
   color: white;
 }
 
 .container { padding: 15px; }
 
 .glass {
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 16px;
   padding: 15px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  transition: 0.3s;
+}
+
+.glass:hover {
+  transform: translateY(-3px) scale(1.02);
 }
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(120px,1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+  gap: 12px;
 }
 
-.card { text-align: center; }
+.card {
+  text-align: center;
+  font-size: 18px;
+  animation: fadeIn 0.5s ease;
+}
+
+.card span {
+  display: block;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.income-text { color: #4ade80; }
+.expense-text { color: #fb7185; }
 
 button {
   padding: 8px;
@@ -38,17 +58,23 @@ button {
   border-radius: 8px;
   margin: 5px;
   cursor: pointer;
-  background: #00c6ff;
-  color: black;
+  background: linear-gradient(45deg,#00c6ff,#0072ff);
+  color: white;
+}
+
+button:hover {
+  opacity: 0.8;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
 }
 
 th, td {
-  padding: 8px;
+  padding: 10px;
   text-align: center;
 }
 
@@ -58,8 +84,38 @@ tr:hover {
 
 .dark { background: #0f2027; }
 
-.income { color: lightgreen; }
-.expense { color: #ff6b6b; }
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.7);
+  justify-content:center;
+  align-items:center;
+}
+
+.modal-content {
+  background:#1e293b;
+  padding:20px;
+  border-radius:12px;
+  width:90%;
+  max-width:300px;
+}
+
+input, select {
+  width:100%;
+  margin:6px 0;
+  padding:8px;
+  border-radius:6px;
+  border:none;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(10px);}
+  to { opacity:1; transform:translateY(0);}
+}
 </style>
 </head>
 
@@ -67,7 +123,7 @@ tr:hover {
 
 <div class="container">
 
-<h1>💰 Finance Dashboard</h1>
+<h1>💰 Finance Dashboard Pro+</h1>
 
 <div class="glass">
 <select id="role">
@@ -79,20 +135,31 @@ tr:hover {
 </div>
 
 <div class="cards">
-<div class="glass card" id="balance"></div>
-<div class="glass card" id="income"></div>
-<div class="glass card" id="expense"></div>
+<div class="glass card">
+Balance
+<span id="balance"></span>
+</div>
+
+<div class="glass card">
+💰 Income
+<span id="income" class="income-text"></span>
+</div>
+
+<div class="glass card">
+💸 Expense
+<span id="expense" class="expense-text"></span>
+</div>
 </div>
 
 <div class="glass"><canvas id="pieChart"></canvas></div>
 <div class="glass"><canvas id="lineChart"></canvas></div>
 
 <div class="glass">
-<button onclick="filterData('all')">All</button>
-<button onclick="filterData('income')">Income</button>
-<button onclick="filterData('expense')">Expense</button>
-<button onclick="sortByAmount()">Sort by Amount</button>
-<input id="search" placeholder="Search..." onkeyup="renderTable()">
+<button onclick="setFilter('all')">All</button>
+<button onclick="setFilter('income')">Income</button>
+<button onclick="setFilter('expense')">Expense</button>
+<button onclick="sortByAmount()">Sort</button>
+<input id="search" placeholder="🔍 Search..." onkeyup="renderTable()">
 </div>
 
 <div class="glass">
@@ -110,17 +177,34 @@ tr:hover {
 </table>
 </div>
 
-<button onclick="addTransaction()">➕ Add</button>
+<button onclick="openModal()">➕ Add Transaction</button>
 
 <div class="glass">
-<h3>Insights</h3>
+<h3>📊 Insights</h3>
 <p id="insight"></p>
 </div>
 
 </div>
 
+<!-- Modal -->
+<div class="modal" id="modal">
+<div class="modal-content">
+<h3>Add Transaction</h3>
+<input id="amount" placeholder="Amount">
+<input id="category" placeholder="Category">
+<select id="type">
+<option value="income">Income</option>
+<option value="expense">Expense</option>
+</select>
+<button onclick="addTransaction()">Add</button>
+<button onclick="closeModal()">Cancel</button>
+</div>
+</div>
+
 <script>
-let transactions = JSON.parse(localStorage.getItem("data")) || [
+
+const state = {
+ transactions : JSON.parse(localStorage.getItem("data")) || [
 
 {date:"2026-03-25", amount:45000, category:"Salary", type:"income"},
 {date:"2026-03-26", amount:2000, category:"Freelance", type:"income"},
@@ -150,32 +234,32 @@ let transactions = JSON.parse(localStorage.getItem("data")) || [
 {date:"2026-04-07", amount:2500, category:"Rent", type:"expense"}
 
 ];
-let filter = "all";
+};
+
 let pieChart, lineChart;
 
 function save(){
-localStorage.setItem("data", JSON.stringify(transactions));
+localStorage.setItem("data", JSON.stringify(state.transactions));
 }
 
 function calculate(){
 let income=0, expense=0;
 
-transactions.forEach(t=>{
+state.transactions.forEach(t=>{
 if(t.type==="income") income+=t.amount;
 else expense+=t.amount;
 });
 
-document.getElementById("income").innerText="Income ₹"+income;
-document.getElementById("expense").innerText="Expense ₹"+expense;
-document.getElementById("balance").innerText="Balance ₹"+(income-expense);
+document.getElementById("income").innerText="₹"+income;
+document.getElementById("expense").innerText="₹"+expense;
+document.getElementById("balance").innerText="₹"+(income-expense);
 
-// Insights
-let max = transactions.filter(t=>t.type==="expense")
+// Insight
+let max = state.transactions.filter(t=>t.type==="expense")
 .sort((a,b)=>b.amount-a.amount)[0];
 
 document.getElementById("insight").innerText =
-(max ? "Highest spending: "+max.category : "No data") +
-" | Total Transactions: " + transactions.length;
+max ? `You spend most on ${max.category}` : "No data";
 }
 
 function renderTable(){
@@ -184,12 +268,12 @@ let search=document.getElementById("search").value.toLowerCase();
 
 body.innerHTML="";
 
-let filtered = transactions
-.filter(t=>filter==="all"||t.type===filter)
+let filtered = state.transactions
+.filter(t=>state.filter==="all"||t.type===state.filter)
 .filter(t=>t.category.toLowerCase().includes(search));
 
 if(filtered.length===0){
-body.innerHTML="<tr><td colspan='5'>No data available</td></tr>";
+body.innerHTML="<tr><td colspan='5'>No data</td></tr>";
 return;
 }
 
@@ -197,72 +281,59 @@ filtered.forEach((t,i)=>{
 body.innerHTML+=`
 <tr>
 <td>${t.date}</td>
-<td class="${t.type}">₹${t.amount}</td>
+<td class="${t.type==='income'?'income-text':'expense-text'}">₹${t.amount}</td>
 <td>${t.category}</td>
 <td>${t.type}</td>
 <td>
-<button onclick="editTransaction(${i})">Edit</button>
 <button onclick="deleteTransaction(${i})">Delete</button>
 </td>
 </tr>`;
 });
 }
 
-function filterData(type){
-filter=type;
+function setFilter(type){
+state.filter=type;
 renderTable();
 }
 
-function addTransaction(){
-let role=document.getElementById("role").value;
-if(role!=="admin"){ alert("Only Admin allowed!"); return; }
-
-let amount=prompt("Amount:");
-let category=prompt("Category:");
-let type=prompt("income/expense");
-
-if(!amount || !category || (type!=="income" && type!=="expense")){
-alert("Invalid input"); return;
+function openModal(){
+if(getRole()!=="admin") return alert("Admin only");
+document.getElementById("modal").style.display="flex";
 }
 
-transactions.push({
+function closeModal(){
+document.getElementById("modal").style.display="none";
+}
+
+function addTransaction(){
+let amount = Number(document.getElementById("amount").value);
+let category = document.getElementById("category").value;
+let type = document.getElementById("type").value;
+
+if(!amount || !category) return alert("Invalid input");
+
+state.transactions.push({
 date:new Date().toISOString().split("T")[0],
-amount:Number(amount),
-category,
-type
+amount, category, type
 });
 
-save();
-update();
-}
-
-function editTransaction(i){
-let role=document.getElementById("role").value;
-if(role!=="admin"){ alert("Only Admin allowed!"); return; }
-
-let t = transactions[i];
-
-let amount=prompt("Edit amount:", t.amount);
-let category=prompt("Edit category:", t.category);
-
-transactions[i].amount=Number(amount);
-transactions[i].category=category;
-
+closeModal();
 save();
 update();
 }
 
 function deleteTransaction(i){
-let role=document.getElementById("role").value;
-if(role!=="admin"){ alert("Only Admin allowed!"); return; }
+if(getRole()!=="admin") return alert("Admin only");
 
-transactions.splice(i,1);
+if(confirm("Delete this transaction?")){
+state.transactions.splice(i,1);
 save();
 update();
 }
+}
 
 function sortByAmount(){
-transactions.sort((a,b)=>b.amount-a.amount);
+state.transactions.sort((a,b)=>b.amount-a.amount);
 renderTable();
 }
 
@@ -274,29 +345,43 @@ if(lineChart) lineChart.destroy();
 pieChart = new Chart(document.getElementById("pieChart"),{
 type:"pie",
 data:{
-labels:transactions.map(t=>t.category),
-datasets:[{data:transactions.map(t=>t.amount)}]
+labels:state.transactions.map(t=>t.category),
+datasets:[{
+data:state.transactions.map(t=>t.amount)
+}]
+},
+options:{
+plugins:{
+legend:{ labels:{ color:"white" }}
+}
 }
 });
 
 lineChart = new Chart(document.getElementById("lineChart"),{
 type:"line",
 data:{
-labels:transactions.map(t=>t.date),
-datasets:[{label:"Trend",data:transactions.map(t=>t.amount)}]
+labels:state.transactions.map(t=>t.date),
+datasets:[{
+label:"Trend",
+data:state.transactions.map(t=>t.amount),
+borderColor:"#00c6ff",
+tension:0.4
+}]
+},
+options:{
+plugins:{
+legend:{ labels:{ color:"white" }}
+}
 }
 });
-}
-
-function toggleDark(){
-document.body.classList.toggle("dark");
 }
 
 function exportCSV(){
-let csv="Date,Amount,Category,Type\\n";
-transactions.forEach(t=>{
-csv+=`${t.date},${t.amount},${t.category},${t.type}\\n`;
+let csv="Date,Amount,Category,Type\n";
+state.transactions.forEach(t=>{
+csv+=`${t.date},${t.amount},${t.category},${t.type}\n`;
 });
+
 let blob=new Blob([csv],{type:"text/csv"});
 let url=URL.createObjectURL(blob);
 let a=document.createElement("a");
@@ -305,193 +390,14 @@ a.download="transactions.csv";
 a.click();
 }
 
-function update(){
-calculate();
-renderTable();
-drawCharts();
-}
-
-update();
-</script>
-
-</body>
-  </html></div>
-
-<!-- Cards -->
-<div class="cards">
-<div class="glass card fade" id="balance"></div>
-<div class="glass card fade" id="income"></div>
-<div class="glass card fade" id="expense"></div>
-</div>
-
-<!-- Charts -->
-<div class="glass fade">
-<canvas id="pieChart"></canvas>
-</div>
-
-<div class="glass fade">
-<canvas id="lineChart"></canvas>
-</div>
-
-<!-- Controls -->
-<div class="glass">
-<button onclick="filterData('all')">All</button>
-<button onclick="filterData('income')">Income</button>
-<button onclick="filterData('expense')">Expense</button>
-<input id="search" placeholder="Search..." onkeyup="renderTable()">
-</div>
-
-<!-- Table -->
-<div class="glass">
-<table>
-<thead>
-<tr>
-<th>Date</th>
-<th>Amount</th>
-<th>Category</th>
-<th>Type</th>
-</tr>
-</thead>
-<tbody id="tableBody"></tbody>
-</table>
-</div>
-
-<button onclick="addTransaction()">➕ Add</button>
-<button onclick="exportCSV()">📤 Export CSV</button>
-<!-- Insights -->
-<div class="glass">
-<h3>Insights</h3>
-<p id="insight"></p>
-</div>
-
-</div>
-
-<script>
-  function exportCSV() {
-  let csv = "Date,Amount,Category,Type\n";
-
-  transactions.forEach(t => {
-    csv += `${t.date},${t.amount},${t.category},${t.type}\n`;
-  });
-
-  let blob = new Blob([csv], { type: "text/csv" });
-  let url = URL.createObjectURL(blob);
-
-  let a = document.createElement("a");
-  a.href = url;
-  a.download = "transactions.csv";
-  a.click();
-  }
-let transactions = JSON.parse(localStorage.getItem("data")) || [
-{date:"2026-04-01", amount:5000, category:"Salary", type:"income"},
-{date:"2026-04-02", amount:200, category:"Food", type:"expense"},
-{date:"2026-04-03", amount:300, category:"Travel", type:"expense"}
-];
-
-let filter = "all";
-
-function save(){
-localStorage.setItem("data", JSON.stringify(transactions));
-}
-
-function calculate(){
-let income=0, expense=0;
-
-transactions.forEach(t=>{
-if(t.type==="income") income+=t.amount;
-else expense+=t.amount;
-});
-
-document.getElementById("income").innerText="Income ₹"+income;
-document.getElementById("expense").innerText="Expense ₹"+expense;
-document.getElementById("balance").innerText="Balance ₹"+(income-expense);
-
-// Insight
-let max = transactions.filter(t=>t.type==="expense")
-.sort((a,b)=>b.amount-a.amount)[0];
-
-document.getElementById("insight").innerText =
-max ? "You spend most on "+max.category : "No data";
-}
-
-function renderTable(){
-let body=document.getElementById("tableBody");
-let search=document.getElementById("search").value.toLowerCase();
-
-body.innerHTML="";
-
-transactions
-.filter(t=>filter==="all"||t.type===filter)
-.filter(t=>t.category.toLowerCase().includes(search))
-.forEach(t=>{
-body.innerHTML+=`
-<tr class="fade">
-<td>${t.date}</td>
-<td>₹${t.amount}</td>
-<td>${t.category}</td>
-<td>${t.type}</td>
-</tr>
-`;
-});
-}
-
-function filterData(type){
-filter=type;
-renderTable();
-}
-
-function addTransaction(){
-let role=document.getElementById("role").value;
-
-if(role!=="admin"){
-alert("Only Admin allowed!");
-return;
-}
-
-let amount=prompt("Amount:");
-let category=prompt("Category:");
-let type=prompt("income/expense");
-
-transactions.push({
-date:new Date().toISOString().split("T")[0],
-amount:Number(amount),
-category,
-type
-});
-
-save();
-update();
-}
-
-function drawCharts(){
-
-// Pie Chart
-new Chart(document.getElementById("pieChart"),{
-type:"pie",
-data:{
-labels:transactions.map(t=>t.category),
-datasets:[{data:transactions.map(t=>t.amount)}]
-}
-});
-
-// Line Chart
-new Chart(document.getElementById("lineChart"),{
-type:"line",
-data:{
-labels:transactions.map(t=>t.date),
-datasets:[{
-label:"Spending Trend",
-data:transactions.map(t=>t.amount),
-fill:false
-}]
-}
-});
-}
-
 function toggleDark(){
 document.body.classList.toggle("dark");
 }
 
+function getRole(){
+return document.getElementById("role").value;
+}
+
 function update(){
 calculate();
 renderTable();
@@ -499,6 +405,7 @@ drawCharts();
 }
 
 update();
+
 </script>
 
 </body>
