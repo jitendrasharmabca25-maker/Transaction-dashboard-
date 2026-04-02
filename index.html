@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Premium Finance Dashboard</title>
+<title>Finance Dashboard - Final</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -15,38 +14,24 @@ body {
   color: white;
 }
 
-/* Glass UI */
+.container { padding: 15px; }
+
 .glass {
   background: rgba(255,255,255,0.1);
   backdrop-filter: blur(10px);
   border-radius: 15px;
   padding: 15px;
+  margin-bottom: 10px;
 }
 
-.container {
-  padding: 15px;
-}
-
-h1 {
-  text-align: center;
-}
-
-/* Cards */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit,minmax(120px,1fr));
   gap: 10px;
 }
 
-.card {
-  text-align: center;
-  transition: 0.3s;
-}
-.card:hover {
-  transform: scale(1.05);
-}
+.card { text-align: center; }
 
-/* Buttons */
 button {
   padding: 8px;
   border: none;
@@ -57,10 +42,8 @@ button {
   color: black;
 }
 
-/* Table */
 table {
   width: 100%;
-  margin-top: 10px;
   border-collapse: collapse;
 }
 
@@ -73,20 +56,10 @@ tr:hover {
   background: rgba(255,255,255,0.1);
 }
 
-/* Animations */
-.fade {
-  animation: fadeIn 0.8s;
-}
+.dark { background: #0f2027; }
 
-@keyframes fadeIn {
-  from {opacity:0; transform: translateY(10px);}
-  to {opacity:1;}
-}
-
-/* Dark mode */
-.dark {
-  background: #0f2027;
-}
+.income { color: lightgreen; }
+.expense { color: #ff6b6b; }
 </style>
 </head>
 
@@ -96,15 +69,225 @@ tr:hover {
 
 <h1>💰 Finance Dashboard</h1>
 
-<!-- Role + Dark -->
 <div class="glass">
 <select id="role">
 <option value="viewer">Viewer</option>
 <option value="admin">Admin</option>
 </select>
-
 <button onclick="toggleDark()">🌙 Dark</button>
+<button onclick="exportCSV()">📤 Export</button>
 </div>
+
+<div class="cards">
+<div class="glass card" id="balance"></div>
+<div class="glass card" id="income"></div>
+<div class="glass card" id="expense"></div>
+</div>
+
+<div class="glass"><canvas id="pieChart"></canvas></div>
+<div class="glass"><canvas id="lineChart"></canvas></div>
+
+<div class="glass">
+<button onclick="filterData('all')">All</button>
+<button onclick="filterData('income')">Income</button>
+<button onclick="filterData('expense')">Expense</button>
+<button onclick="sortByAmount()">Sort by Amount</button>
+<input id="search" placeholder="Search..." onkeyup="renderTable()">
+</div>
+
+<div class="glass">
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Amount</th>
+<th>Category</th>
+<th>Type</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+
+<button onclick="addTransaction()">➕ Add</button>
+
+<div class="glass">
+<h3>Insights</h3>
+<p id="insight"></p>
+</div>
+
+</div>
+
+<script>
+let transactions = JSON.parse(localStorage.getItem("data")) || [];
+
+let filter = "all";
+let pieChart, lineChart;
+
+function save(){
+localStorage.setItem("data", JSON.stringify(transactions));
+}
+
+function calculate(){
+let income=0, expense=0;
+
+transactions.forEach(t=>{
+if(t.type==="income") income+=t.amount;
+else expense+=t.amount;
+});
+
+document.getElementById("income").innerText="Income ₹"+income;
+document.getElementById("expense").innerText="Expense ₹"+expense;
+document.getElementById("balance").innerText="Balance ₹"+(income-expense);
+
+// Insights
+let max = transactions.filter(t=>t.type==="expense")
+.sort((a,b)=>b.amount-a.amount)[0];
+
+document.getElementById("insight").innerText =
+(max ? "Highest spending: "+max.category : "No data") +
+" | Total Transactions: " + transactions.length;
+}
+
+function renderTable(){
+let body=document.getElementById("tableBody");
+let search=document.getElementById("search").value.toLowerCase();
+
+body.innerHTML="";
+
+let filtered = transactions
+.filter(t=>filter==="all"||t.type===filter)
+.filter(t=>t.category.toLowerCase().includes(search));
+
+if(filtered.length===0){
+body.innerHTML="<tr><td colspan='5'>No data available</td></tr>";
+return;
+}
+
+filtered.forEach((t,i)=>{
+body.innerHTML+=`
+<tr>
+<td>${t.date}</td>
+<td class="${t.type}">₹${t.amount}</td>
+<td>${t.category}</td>
+<td>${t.type}</td>
+<td>
+<button onclick="editTransaction(${i})">Edit</button>
+<button onclick="deleteTransaction(${i})">Delete</button>
+</td>
+</tr>`;
+});
+}
+
+function filterData(type){
+filter=type;
+renderTable();
+}
+
+function addTransaction(){
+let role=document.getElementById("role").value;
+if(role!=="admin"){ alert("Only Admin allowed!"); return; }
+
+let amount=prompt("Amount:");
+let category=prompt("Category:");
+let type=prompt("income/expense");
+
+if(!amount || !category || (type!=="income" && type!=="expense")){
+alert("Invalid input"); return;
+}
+
+transactions.push({
+date:new Date().toISOString().split("T")[0],
+amount:Number(amount),
+category,
+type
+});
+
+save();
+update();
+}
+
+function editTransaction(i){
+let role=document.getElementById("role").value;
+if(role!=="admin"){ alert("Only Admin allowed!"); return; }
+
+let t = transactions[i];
+
+let amount=prompt("Edit amount:", t.amount);
+let category=prompt("Edit category:", t.category);
+
+transactions[i].amount=Number(amount);
+transactions[i].category=category;
+
+save();
+update();
+}
+
+function deleteTransaction(i){
+let role=document.getElementById("role").value;
+if(role!=="admin"){ alert("Only Admin allowed!"); return; }
+
+transactions.splice(i,1);
+save();
+update();
+}
+
+function sortByAmount(){
+transactions.sort((a,b)=>b.amount-a.amount);
+renderTable();
+}
+
+function drawCharts(){
+
+if(pieChart) pieChart.destroy();
+if(lineChart) lineChart.destroy();
+
+pieChart = new Chart(document.getElementById("pieChart"),{
+type:"pie",
+data:{
+labels:transactions.map(t=>t.category),
+datasets:[{data:transactions.map(t=>t.amount)}]
+}
+});
+
+lineChart = new Chart(document.getElementById("lineChart"),{
+type:"line",
+data:{
+labels:transactions.map(t=>t.date),
+datasets:[{label:"Trend",data:transactions.map(t=>t.amount)}]
+}
+});
+}
+
+function toggleDark(){
+document.body.classList.toggle("dark");
+}
+
+function exportCSV(){
+let csv="Date,Amount,Category,Type\\n";
+transactions.forEach(t=>{
+csv+=`${t.date},${t.amount},${t.category},${t.type}\\n`;
+});
+let blob=new Blob([csv],{type:"text/csv"});
+let url=URL.createObjectURL(blob);
+let a=document.createElement("a");
+a.href=url;
+a.download="transactions.csv";
+a.click();
+}
+
+function update(){
+calculate();
+renderTable();
+drawCharts();
+}
+
+update();
+</script>
+
+</body>
+  </html></div>
 
 <!-- Cards -->
 <div class="cards">
