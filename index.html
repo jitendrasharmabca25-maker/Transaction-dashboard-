@@ -8,19 +8,33 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+
+/* THEME VARIABLES */
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+  --card: rgba(0,0,0,0.05);
+}
+
+.dark-theme {
+  --bg: #141e30;
+  --text: #ffffff;
+  --card: rgba(255,255,255,0.12);
+}
+
 body {
   margin: 0;
   font-family: 'Segoe UI';
-  background: linear-gradient(135deg,#141e30,#243b55);
-  color: white;
+  background: var(--bg);
+  color: var(--text);
+  transition: 0.3s;
 }
 
 .container { padding: 15px; }
 
 .glass {
-  background: rgba(255,255,255,0.12);
+  background: var(--card);
   backdrop-filter: blur(15px);
-  border: 1px solid rgba(255,255,255,0.2);
   border-radius: 16px;
   padding: 15px;
   margin-bottom: 12px;
@@ -51,8 +65,6 @@ button {
   border-radius: 8px;
   margin: 5px;
   cursor: pointer;
-  background: linear-gradient(45deg,#00c6ff,#0072ff);
-  color: white;
 }
 
 table {
@@ -71,6 +83,7 @@ tr:hover {
   background: rgba(255,255,255,0.1);
 }
 
+/* MODAL */
 .modal {
   display: none;
   position: fixed;
@@ -96,6 +109,7 @@ input, select {
   border-radius:6px;
   border:none;
 }
+
 </style>
 </head>
 
@@ -110,7 +124,8 @@ input, select {
 <option value="viewer">Viewer</option>
 <option value="admin">Admin</option>
 </select>
-<button onclick="toggleDark()">🌙 Dark</button>
+
+<button id="themeBtn" onclick="toggleTheme()">🌙 Dark</button>
 <button onclick="exportCSV()">📤 Export</button>
 </div>
 
@@ -187,7 +202,7 @@ const state = {
   {date:"2026-03-25", amount:45000, category:"Salary", type:"income"},
   {date:"2026-03-27", amount:500, category:"Food", type:"expense"}
  ],
- filter: "all" // ✅ FIXED
+ filter: "all"
 };
 
 let pieChart, lineChart;
@@ -225,7 +240,7 @@ function renderTable(){
  }
 
  filtered.forEach((t)=>{
-  const index = state.transactions.indexOf(t); // ✅ FIXED
+  const index = state.transactions.indexOf(t);
 
   body.innerHTML+=`
   <tr>
@@ -329,9 +344,43 @@ function exportCSV(){
  a.click();
 }
 
-function toggleDark(){
- document.body.classList.toggle("dark");
+/* THEME SYSTEM */
+function toggleTheme(){
+  const body = document.body;
+  const btn = document.getElementById("themeBtn");
+
+  body.classList.toggle("dark-theme");
+
+  const isDark = body.classList.contains("dark-theme");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+
+  if(isDark){
+    btn.innerText = "☀️ Light";
+    btn.style.background = "white";
+    btn.style.color = "black";
+  } else {
+    btn.innerText = "🌙 Dark";
+    btn.style.background = "black";
+    btn.style.color = "white";
+  }
 }
+
+/* LOAD SAVED THEME */
+window.onload = () => {
+  const saved = localStorage.getItem("theme");
+  const btn = document.getElementById("themeBtn");
+
+  if(saved === "dark"){
+    document.body.classList.add("dark-theme");
+    btn.innerText = "☀️ Light";
+    btn.style.background = "white";
+    btn.style.color = "black";
+  } else {
+    btn.innerText = "🌙 Dark";
+    btn.style.background = "black";
+    btn.style.color = "white";
+  }
+};
 
 function getRole(){
  return document.getElementById("role").value;
@@ -348,4 +397,4 @@ update();
 </script>
 
 </body>
-                                                    </html>
+  </html>
