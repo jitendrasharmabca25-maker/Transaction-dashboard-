@@ -120,8 +120,36 @@ tr:hover {
 </div>
 
 <script>
-let transactions = JSON.parse(localStorage.getItem("data")) || [];
+let transactions = JSON.parse(localStorage.getItem("data")) || [
 
+{date:"2026-03-25", amount:45000, category:"Salary", type:"income"},
+{date:"2026-03-26", amount:2000, category:"Freelance", type:"income"},
+{date:"2026-03-27", amount:500, category:"Food", type:"expense"},
+{date:"2026-03-27", amount:1200, category:"Groceries", type:"expense"},
+{date:"2026-03-28", amount:800, category:"Transport", type:"expense"},
+{date:"2026-03-28", amount:1500, category:"Shopping", type:"expense"},
+{date:"2026-03-29", amount:3000, category:"Online Course", type:"expense"},
+{date:"2026-03-30", amount:7000, category:"Part-time Job", type:"income"},
+{date:"2026-03-30", amount:250, category:"Snacks", type:"expense"},
+{date:"2026-03-31", amount:4000, category:"Investment Return", type:"income"},
+{date:"2026-03-31", amount:1000, category:"Electricity Bill", type:"expense"},
+{date:"2026-04-01", amount:600, category:"Internet Bill", type:"expense"},
+{date:"2026-04-01", amount:1200, category:"Fuel", type:"expense"},
+{date:"2026-04-02", amount:500, category:"Movie", type:"expense"},
+{date:"2026-04-02", amount:10000, category:"Bonus", type:"income"},
+{date:"2026-04-02", amount:2000, category:"Dining Out", type:"expense"},
+{date:"2026-04-03", amount:1500, category:"Clothing", type:"expense"},
+{date:"2026-04-03", amount:3500, category:"Stock Profit", type:"income"},
+{date:"2026-04-04", amount:900, category:"Medicine", type:"expense"},
+{date:"2026-04-04", amount:500, category:"Mobile Recharge", type:"expense"},
+{date:"2026-04-05", amount:8000, category:"Freelance Project", type:"income"},
+{date:"2026-04-05", amount:2200, category:"Shopping", type:"expense"},
+{date:"2026-04-06", amount:300, category:"Tea & Snacks", type:"expense"},
+{date:"2026-04-06", amount:1500, category:"Transport", type:"expense"},
+{date:"2026-04-07", amount:20000, category:"Salary Advance", type:"income"},
+{date:"2026-04-07", amount:2500, category:"Rent", type:"expense"}
+
+];
 let filter = "all";
 let pieChart, lineChart;
 
