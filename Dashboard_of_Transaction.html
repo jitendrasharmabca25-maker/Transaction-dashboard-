@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Premium Finance Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI';
+  background: linear-gradient(135deg,#1d2671,#c33764);
+  color: white;
+}
+
+/* Glass UI */
+.glass {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 15px;
+}
+
+.container {
+  padding: 15px;
+}
+
+h1 {
+  text-align: center;
+}
+
+/* Cards */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(120px,1fr));
+  gap: 10px;
+}
+
+.card {
+  text-align: center;
+  transition: 0.3s;
+}
+.card:hover {
+  transform: scale(1.05);
+}
+
+/* Buttons */
+button {
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  margin: 5px;
+  cursor: pointer;
+  background: #00c6ff;
+  color: black;
+}
+
+/* Table */
+table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 8px;
+  text-align: center;
+}
+
+tr:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Animations */
+.fade {
+  animation: fadeIn 0.8s;
+}
+
+@keyframes fadeIn {
+  from {opacity:0; transform: translateY(10px);}
+  to {opacity:1;}
+}
+
+/* Dark mode */
+.dark {
+  background: #0f2027;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>💰 Finance Dashboard</h1>
+
+<!-- Role + Dark -->
+<div class="glass">
+<select id="role">
+<option value="viewer">Viewer</option>
+<option value="admin">Admin</option>
+</select>
+
+<button onclick="toggleDark()">🌙 Dark</button>
+</div>
+
+<!-- Cards -->
+<div class="cards">
+<div class="glass card fade" id="balance"></div>
+<div class="glass card fade" id="income"></div>
+<div class="glass card fade" id="expense"></div>
+</div>
+
+<!-- Charts -->
+<div class="glass fade">
+<canvas id="pieChart"></canvas>
+</div>
+
+<div class="glass fade">
+<canvas id="lineChart"></canvas>
+</div>
+
+<!-- Controls -->
+<div class="glass">
+<button onclick="filterData('all')">All</button>
+<button onclick="filterData('income')">Income</button>
+<button onclick="filterData('expense')">Expense</button>
+<input id="search" placeholder="Search..." onkeyup="renderTable()">
+</div>
+
+<!-- Table -->
+<div class="glass">
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Amount</th>
+<th>Category</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+
+<button onclick="addTransaction()">➕ Add</button>
+<button onclick="exportCSV()">📤 Export CSV</button>
+<!-- Insights -->
+<div class="glass">
+<h3>Insights</h3>
+<p id="insight"></p>
+</div>
+
+</div>
+
+<script>
+  function exportCSV() {
+  let csv = "Date,Amount,Category,Type\n";
+
+  transactions.forEach(t => {
+    csv += `${t.date},${t.amount},${t.category},${t.type}\n`;
+  });
+
+  let blob = new Blob([csv], { type: "text/csv" });
+  let url = URL.createObjectURL(blob);
+
+  let a = document.createElement("a");
+  a.href = url;
+  a.download = "transactions.csv";
+  a.click();
+  }
+let transactions = JSON.parse(localStorage.getItem("data")) || [
+{date:"2026-04-01", amount:5000, category:"Salary", type:"income"},
+{date:"2026-04-02", amount:200, category:"Food", type:"expense"},
+{date:"2026-04-03", amount:300, category:"Travel", type:"expense"}
+];
+
+let filter = "all";
+
+function save(){
+localStorage.setItem("data", JSON.stringify(transactions));
+}
+
+function calculate(){
+let income=0, expense=0;
+
+transactions.forEach(t=>{
+if(t.type==="income") income+=t.amount;
+else expense+=t.amount;
+});
+
+document.getElementById("income").innerText="Income ₹"+income;
+document.getElementById("expense").innerText="Expense ₹"+expense;
+document.getElementById("balance").innerText="Balance ₹"+(income-expense);
+
+// Insight
+let max = transactions.filter(t=>t.type==="expense")
+.sort((a,b)=>b.amount-a.amount)[0];
+
+document.getElementById("insight").innerText =
+max ? "You spend most on "+max.category : "No data";
+}
+
+function renderTable(){
+let body=document.getElementById("tableBody");
+let search=document.getElementById("search").value.toLowerCase();
+
+body.innerHTML="";
+
+transactions
+.filter(t=>filter==="all"||t.type===filter)
+.filter(t=>t.category.toLowerCase().includes(search))
+.forEach(t=>{
+body.innerHTML+=`
+<tr class="fade">
+<td>${t.date}</td>
+<td>₹${t.amount}</td>
+<td>${t.category}</td>
+<td>${t.type}</td>
+</tr>
+`;
+});
+}
+
+function filterData(type){
+filter=type;
+renderTable();
+}
+
+function addTransaction(){
+let role=document.getElementById("role").value;
+
+if(role!=="admin"){
+alert("Only Admin allowed!");
+return;
+}
+
+let amount=prompt("Amount:");
+let category=prompt("Category:");
+let type=prompt("income/expense");
+
+transactions.push({
+date:new Date().toISOString().split("T")[0],
+amount:Number(amount),
+category,
+type
+});
+
+save();
+update();
+}
+
+function drawCharts(){
+
+// Pie Chart
+new Chart(document.getElementById("pieChart"),{
+type:"pie",
+data:{
+labels:transactions.map(t=>t.category),
+datasets:[{data:transactions.map(t=>t.amount)}]
+}
+});
+
+// Line Chart
+new Chart(document.getElementById("lineChart"),{
+type:"line",
+data:{
+labels:transactions.map(t=>t.date),
+datasets:[{
+label:"Spending Trend",
+data:transactions.map(t=>t.amount),
+fill:false
+}]
+}
+});
+}
+
+function toggleDark(){
+document.body.classList.toggle("dark");
+}
+
+function update(){
+calculate();
+renderTable();
+drawCharts();
+}
+
+update();
+</script>
+
+</body>
+  </html>
