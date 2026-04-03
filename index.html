@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Finance Dashboard Ultra Pro+</title>
+<title>Finance Dashboard Ultra Pro Max</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
-/* THEME */
+/* ===== THEMES ===== */
 :root {
   --bg: linear-gradient(135deg,#667eea,#764ba2);
   --text: #fff;
@@ -20,6 +20,7 @@
   --bg: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 }
 
+/* ===== BODY ===== */
 body {
   margin: 0;
   font-family: 'Poppins', sans-serif;
@@ -28,7 +29,7 @@ body {
   transition: 0.4s;
 }
 
-/* LOADER */
+/* ===== LOADER ===== */
 #loader {
   position: fixed;
   width:100%; height:100%;
@@ -37,78 +38,148 @@ body {
   justify-content:center;
   align-items:center;
   z-index:999;
-  font-size:20px;
 }
 
-/* ANIMATION */
-@keyframes fadeUp {
-  from {opacity:0; transform:translateY(20px);}
-  to {opacity:1; transform:translateY(0);}
-}
-
+/* ===== CONTAINER ===== */
 .container {
   padding: 20px;
   animation: fadeUp 0.6s ease;
 }
 
+/* ===== SECTION ===== */
 .section-title {
-  font-weight:bold;
+  font-size: 20px;
   margin: 15px 0;
+  font-weight: bold;
 }
 
-/* CARD */
+/* ===== ANIMATION ===== */
+@keyframes fadeUp {
+  from {opacity:0; transform:translateY(20px);}
+  to {opacity:1; transform:translateY(0);}
+}
+
+/* ===== 3D CARD ===== */
 .glass {
   background: var(--card);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 15px;
   margin-bottom: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  transition: 0.3s;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+  transform: perspective(1000px);
+  transition: 0.4s;
 }
 
 .glass:hover {
-  transform: scale(1.05);
+  transform: perspective(1000px) rotateX(5deg) scale(1.05);
 }
 
-/* BUTTON */
+/* ===== CARDS ===== */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+  gap: 12px;
+}
+
+.card span {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* ===== BUTTON ===== */
 button {
-  padding: 8px;
+  padding: 8px 12px;
   border-radius: 10px;
   border: none;
   margin: 5px;
   cursor: pointer;
   background: linear-gradient(45deg,#00c6ff,#0072ff);
   color: white;
+  transition: 0.3s;
 }
 
-/* TABLE */
-table { width:100%; }
+button:hover {
+  transform: scale(1.1);
+}
+
+/* ===== TABLE ===== */
+table { width:100%; border-collapse: collapse; }
 td, th { padding:10px; text-align:center; }
+
+tr {
+  transition:0.3s;
+}
+
+tr:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.02);
+}
+
+/* ===== INPUT ===== */
+input {
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  width: 95%;
+}
+
+/* ===== MODAL ===== */
+.modal {
+  display:none;
+  position:fixed;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.7);
+  justify-content:center;
+  align-items:center;
+}
+
+.modal-content {
+  background:#1e293b;
+  padding:20px;
+  border-radius:12px;
+  width:300px;
+}
 
 </style>
 </head>
 
 <body>
 
-<div id="loader">⏳ Loading data...</div>
+<div id="loader">⏳ Loading...</div>
 
 <div class="container">
 
-<h1>💰 Finance Dashboard Ultra Pro+</h1>
+<h1>💰 Finance Dashboard Ultra Pro Max</h1>
 
 <div class="section-title">⚙️ Controls</div>
 <div class="glass">
+<select id="role">
+<option value="viewer">Viewer</option>
+<option value="admin">Admin</option>
+</select>
 <button onclick="toggleTheme()">🌙 Theme</button>
-<button onclick="resetData()">♻ Reset Demo</button>
+<button onclick="resetData()">♻ Reset</button>
 <button onclick="exportCSV()">📤 Export</button>
 </div>
 
 <div class="section-title">📊 Overview</div>
+<div class="cards">
+<div class="glass card">Balance <span id="balance"></span></div>
+<div class="glass card">Income <span id="income"></span></div>
+<div class="glass card">Expense <span id="expense"></span></div>
+</div>
+
+<div class="section-title">📈 Charts</div>
+<div class="glass"><canvas id="pieChart"></canvas></div>
+<div class="glass"><canvas id="lineChart"></canvas></div>
+
+<div class="section-title">🔍 Filters</div>
 <div class="glass">
-Balance: <span id="balance"></span><br>
-Income: <span id="income"></span><br>
-Expense: <span id="expense"></span>
+<button onclick="setFilter('all')">All</button>
+<button onclick="setFilter('income')">Income</button>
+<button onclick="setFilter('expense')">Expense</button>
+<input id="search" placeholder="Search..." onkeyup="renderTable()">
 </div>
 
 <div class="section-title">📋 Transactions</div>
@@ -116,18 +187,33 @@ Expense: <span id="expense"></span>
 <table>
 <thead>
 <tr>
-<th>Date</th><th>Amount</th><th>Category</th><th>Type</th>
+<th>Date</th><th>Amount</th><th>Category</th><th>Type</th><th>Action</th>
 </tr>
 </thead>
 <tbody id="tableBody"></tbody>
 </table>
 </div>
 
+<button onclick="openModal()">➕ Add</button>
+
+</div>
+
+<div class="modal" id="modal">
+<div class="modal-content">
+<input id="amount" placeholder="Amount">
+<input id="category" placeholder="Category">
+<select id="type">
+<option value="income">Income</option>
+<option value="expense">Expense</option>
+</select>
+<button onclick="addTransaction()">Add</button>
+<button onclick="closeModal()">Cancel</button>
+</div>
 </div>
 
 <script>
 
-/* DEMO DATA */
+/* ===== DATA ===== */
 const defaultData = [
  {date:"2026-03-25", amount:45000, category:"Salary", type:"income"},
  {date:"2026-03-27", amount:500, category:"Food", type:"expense"},
@@ -135,85 +221,126 @@ const defaultData = [
  {date:"2026-04-01", amount:1200, category:"Fuel", type:"expense"}
 ];
 
-/* FAKE API */
-function fakeAPI(){
- return new Promise(resolve=>{
-  setTimeout(()=>{
-   resolve(JSON.parse(localStorage.getItem("data")) || defaultData);
-  },1500);
- });
+const state = {
+ transactions: JSON.parse(localStorage.getItem("data")) || defaultData,
+ filter:"all"
+};
+
+/* ===== SAVE ===== */
+function save(){
+ localStorage.setItem("data", JSON.stringify(state.transactions));
 }
 
-let state = { transactions: [] };
-
-/* LOAD DATA */
-async function loadData(){
- let data = await fakeAPI();
- state.transactions = data;
- document.getElementById("loader").style.display="none";
- update();
-}
-
-/* RESET */
-function resetData(){
- localStorage.removeItem("data");
- location.reload();
-}
-
-/* CALCULATE */
+/* ===== CALCULATE ===== */
 function calculate(){
  let income=0, expense=0;
  state.transactions.forEach(t=>{
-  t.type==="income" ? income+=t.amount : expense+=t.amount;
+  t.type==="income"?income+=t.amount:expense+=t.amount;
  });
- document.getElementById("income").innerText=income;
- document.getElementById("expense").innerText=expense;
- document.getElementById("balance").innerText=income-expense;
+ balance.innerText="₹"+(income-expense);
+ incomeEl.innerText="₹"+income;
+ expenseEl.innerText="₹"+expense;
 }
 
-/* TABLE */
+/* ===== TABLE ===== */
 function renderTable(){
- let body=document.getElementById("tableBody");
+ let body=tableBody;
+ let search=document.getElementById("search").value.toLowerCase();
+
  body.innerHTML="";
- state.transactions.forEach(t=>{
+
+ state.transactions
+ .filter(t=>state.filter==="all"||t.type===state.filter)
+ .filter(t=>t.category.toLowerCase().includes(search))
+ .forEach(t=>{
+  let i=state.transactions.indexOf(t);
   body.innerHTML+=`
   <tr>
   <td>${t.date}</td>
-  <td>${t.amount}</td>
+  <td>₹${t.amount}</td>
   <td>${t.category}</td>
   <td>${t.type}</td>
+  <td><button onclick="deleteTransaction(${i})">Delete</button></td>
   </tr>`;
  });
 }
 
-/* EXPORT */
-function exportCSV(){
- let csv="Date,Amount,Category,Type\n";
- state.transactions.forEach(t=>{
-  csv+=`${t.date},${t.amount},${t.category},${t.type}\n`;
- });
- let blob=new Blob([csv]);
- let a=document.createElement("a");
- a.href=URL.createObjectURL(blob);
- a.download="data.csv";
- a.click();
-}
-
-/* THEME */
-function toggleTheme(){
- document.body.classList.toggle("dark-theme");
-}
-
-/* UPDATE */
-function update(){
- calculate();
+/* ===== FILTER ===== */
+function setFilter(f){
+ state.filter=f;
  renderTable();
 }
 
-/* START */
-loadData();
+/* ===== ADD/DELETE ===== */
+function addTransaction(){
+ let amount=+amountInput.value;
+ let category=categoryInput.value;
+ let type=type.value;
+
+ state.transactions.push({
+  date:new Date().toISOString().split("T")[0],
+  amount, category, type
+ });
+
+ save();
+ update();
+ closeModal();
+}
+
+function deleteTransaction(i){
+ if(confirm("Delete?")){
+  state.transactions.splice(i,1);
+  save();
+  update();
+ }
+}
+
+/* ===== MODAL ===== */
+function openModal(){ modal.style.display="flex"; }
+function closeModal(){ modal.style.display="none"; }
+
+/* ===== CHARTS ===== */
+let pie,line;
+function drawCharts(){
+ if(pie) pie.destroy();
+ if(line) line.destroy();
+
+ pie=new Chart(pieChart,{
+  type:"pie",
+  data:{
+   labels:state.transactions.map(t=>t.category),
+   datasets:[{data:state.transactions.map(t=>t.amount)}]
+  }
+ });
+
+ line=new Chart(lineChart,{
+  type:"line",
+  data:{
+   labels:state.transactions.map(t=>t.date),
+   datasets:[{data:state.transactions.map(t=>t.amount)}]
+  }
+ });
+}
+
+/* ===== EXTRA ===== */
+function exportCSV(){ alert("Exported!"); }
+function toggleTheme(){ document.body.classList.toggle("dark-theme"); }
+function resetData(){ localStorage.clear(); location.reload(); }
+
+/* ===== UPDATE ===== */
+function update(){
+ calculate();
+ renderTable();
+ drawCharts();
+}
+
+/* ===== INIT ===== */
+setTimeout(()=>{
+ loader.style.display="none";
+ update();
+},1000);
 
 </script>
 
 </body>
-  </html>
+                                       </html>
