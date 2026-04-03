@@ -2,134 +2,145 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Finance Dashboard Ultra Pro Max</title>
+<title>Finance Dashboard Pro+</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
-/* ===== THEMES ===== */
+/* THEME */
 :root {
-  --bg: linear-gradient(135deg,#667eea,#764ba2);
-  --text: #fff;
-  --card: rgba(255,255,255,0.15);
+  --bg: #ffffff;
+  --text: #000;
+  --card: rgba(0,0,0,0.05);
 }
 
 .dark-theme {
-  --bg: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  --bg: #0f172a;
+  --text: #ffffff;
+  --card: rgba(255,255,255,0.08);
 }
 
-/* ===== BODY ===== */
 body {
   margin: 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Segoe UI';
   background: var(--bg);
   color: var(--text);
-  transition: 0.4s;
 }
 
-/* ===== LOADER ===== */
-#loader {
-  position: fixed;
-  width:100%; height:100%;
-  background:#000;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  z-index:999;
+/* SECTION */
+.section {
+  margin-top: 20px;
 }
 
-/* ===== CONTAINER ===== */
-.container {
-  padding: 20px;
-  animation: fadeUp 0.6s ease;
-}
-
-/* ===== SECTION ===== */
-.section-title {
-  font-size: 20px;
-  margin: 15px 0;
-  font-weight: bold;
-}
-
-/* ===== ANIMATION ===== */
-@keyframes fadeUp {
-  from {opacity:0; transform:translateY(20px);}
-  to {opacity:1; transform:translateY(0);}
-}
-
-/* ===== 3D CARD ===== */
+/* GLASS + 3D */
 .glass {
   background: var(--card);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 15px;
   margin-bottom: 15px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-  transform: perspective(1000px);
-  transition: 0.4s;
+
+  box-shadow: 
+    0 10px 25px rgba(0,0,0,0.2),
+    inset 0 1px 1px rgba(255,255,255,0.2);
+
+  transition: 0.3s;
 }
 
 .glass:hover {
-  transform: perspective(1000px) rotateX(5deg) scale(1.05);
+  transform: translateY(-6px) scale(1.02);
 }
 
-/* ===== CARDS ===== */
+/* CARDS */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
   gap: 12px;
 }
 
-.card span {
-  font-size: 24px;
-  font-weight: bold;
+.card {
+  text-align: center;
+  padding: 15px;
+  border-radius: 16px;
+
+  background: linear-gradient(145deg, #ffffff10, #00000010);
+
+  box-shadow:
+    6px 6px 12px rgba(0,0,0,0.2),
+    -6px -6px 12px rgba(255,255,255,0.05);
 }
 
-/* ===== BUTTON ===== */
+.card:hover {
+  transform: translateY(-8px);
+}
+
+.income-text { color: #4ade80; }
+.expense-text { color: #fb7185; }
+
+/* CHARTS */
+.chart-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.chart-box {
+  padding: 10px;
+  border-radius: 16px;
+  box-shadow:
+    inset 2px 2px 5px rgba(0,0,0,0.2),
+    inset -2px -2px 5px rgba(255,255,255,0.05);
+}
+
+/* BUTTON */
 button {
   padding: 8px 12px;
   border-radius: 10px;
   border: none;
-  margin: 5px;
   cursor: pointer;
-  background: linear-gradient(45deg,#00c6ff,#0072ff);
+
+  background: linear-gradient(145deg, #1e293b, #0f172a);
   color: white;
-  transition: 0.3s;
+
+  box-shadow:
+    4px 4px 10px rgba(0,0,0,0.4),
+    inset 1px 1px 2px rgba(255,255,255,0.2);
 }
 
 button:hover {
-  transform: scale(1.1);
+  transform: translateY(-2px);
 }
 
-/* ===== TABLE ===== */
-table { width:100%; border-collapse: collapse; }
-td, th { padding:10px; text-align:center; }
+/* CONTROLS */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 
-tr {
-  transition:0.3s;
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  text-align: center;
 }
 
 tr:hover {
-  background: rgba(255,255,255,0.2);
-  transform: scale(1.02);
+  transform: scale(1.01);
 }
 
-/* ===== INPUT ===== */
-input {
-  padding: 8px;
-  border-radius: 8px;
-  border: none;
-  width: 95%;
-}
-
-/* ===== MODAL ===== */
+/* MODAL */
 .modal {
-  display:none;
-  position:fixed;
+  display: none;
+  position: fixed;
+  top:0; left:0;
   width:100%; height:100%;
-  background:rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.7);
   justify-content:center;
   align-items:center;
 }
@@ -138,7 +149,16 @@ input {
   background:#1e293b;
   padding:20px;
   border-radius:12px;
-  width:300px;
+  width:90%;
+  max-width:300px;
+}
+
+input, select {
+  width:100%;
+  margin:6px 0;
+  padding:8px;
+  border-radius:6px;
+  border:none;
 }
 
 </style>
@@ -146,60 +166,99 @@ input {
 
 <body>
 
-<div id="loader">⏳ Loading...</div>
-
 <div class="container">
 
-<h1>💰 Finance Dashboard Ultra Pro Max</h1>
+<h1>💰 Finance Dashboard Pro+</h1>
 
-<div class="section-title">⚙️ Controls</div>
 <div class="glass">
 <select id="role">
 <option value="viewer">Viewer</option>
 <option value="admin">Admin</option>
 </select>
-<button onclick="toggleTheme()">🌙 Theme</button>
-<button onclick="resetData()">♻ Reset</button>
+
+<button id="themeBtn" onclick="toggleTheme()">🌙 Dark</button>
 <button onclick="exportCSV()">📤 Export</button>
 </div>
 
-<div class="section-title">📊 Overview</div>
+<!-- OVERVIEW -->
+<div class="glass section">
+<h2>📊 Financial Overview</h2>
+
 <div class="cards">
-<div class="glass card">Balance <span id="balance"></span></div>
-<div class="glass card">Income <span id="income"></span></div>
-<div class="glass card">Expense <span id="expense"></span></div>
+<div class="card">
+<p>Total Balance</p>
+<span id="balance"></span>
 </div>
 
-<div class="section-title">📈 Charts</div>
-<div class="glass"><canvas id="pieChart"></canvas></div>
-<div class="glass"><canvas id="lineChart"></canvas></div>
+<div class="card">
+<p>Income</p>
+<span id="income" class="income-text"></span>
+</div>
 
-<div class="section-title">🔍 Filters</div>
-<div class="glass">
+<div class="card">
+<p>Expenses</p>
+<span id="expense" class="expense-text"></span>
+</div>
+</div>
+</div>
+
+<!-- CHARTS -->
+<div class="glass section">
+<h2>📈 Financial Analytics</h2>
+
+<div class="chart-grid">
+<div class="chart-box">
+<h3>Spending Breakdown</h3>
+<canvas id="pieChart"></canvas>
+</div>
+
+<div class="chart-box">
+<h3>Balance Trend</h3>
+<canvas id="lineChart"></canvas>
+</div>
+</div>
+</div>
+
+<!-- TRANSACTIONS -->
+<div class="glass section">
+<h2>💳 Transactions</h2>
+
+<div class="controls">
 <button onclick="setFilter('all')">All</button>
 <button onclick="setFilter('income')">Income</button>
 <button onclick="setFilter('expense')">Expense</button>
-<input id="search" placeholder="Search..." onkeyup="renderTable()">
+<button onclick="sortByAmount()">Sort</button>
+<input id="search" placeholder="🔍 Search..." onkeyup="renderTable()">
 </div>
 
-<div class="section-title">📋 Transactions</div>
-<div class="glass">
 <table>
 <thead>
 <tr>
-<th>Date</th><th>Amount</th><th>Category</th><th>Type</th><th>Action</th>
+<th>Date</th>
+<th>Amount</th>
+<th>Category</th>
+<th>Type</th>
+<th>Action</th>
 </tr>
 </thead>
 <tbody id="tableBody"></tbody>
 </table>
 </div>
 
-<button onclick="openModal()">➕ Add</button>
+<button onclick="openModal()">➕ Add Transaction</button>
+
+<!-- INSIGHTS -->
+<div class="glass section">
+<h2>🧠 Insights</h2>
+<p id="insight">No insights yet...</p>
+</div>
 
 </div>
 
+<!-- MODAL -->
 <div class="modal" id="modal">
 <div class="modal-content">
+<h3>Add Transaction</h3>
 <input id="amount" placeholder="Amount">
 <input id="category" placeholder="Category">
 <select id="type">
@@ -213,135 +272,170 @@ input {
 
 <script>
 
-/* ===== DATA ===== */
-const defaultData = [
- {date:"2026-03-25", amount:45000, category:"Salary", type:"income"},
- {date:"2026-03-27", amount:500, category:"Food", type:"expense"},
- {date:"2026-03-30", amount:7000, category:"Freelance", type:"income"},
- {date:"2026-04-01", amount:1200, category:"Fuel", type:"expense"}
-];
-
 const state = {
- transactions: JSON.parse(localStorage.getItem("data")) || defaultData,
- filter:"all"
+ transactions : JSON.parse(localStorage.getItem("data")) || [
+  {date:"2026-03-25", amount:45000, category:"Salary", type:"income"},
+  {date:"2026-03-27", amount:500, category:"Food", type:"expense"}
+ ],
+ filter: "all"
 };
 
-/* ===== SAVE ===== */
+let pieChart, lineChart;
+
 function save(){
  localStorage.setItem("data", JSON.stringify(state.transactions));
 }
 
-/* ===== CALCULATE ===== */
 function calculate(){
  let income=0, expense=0;
+
  state.transactions.forEach(t=>{
-  t.type==="income"?income+=t.amount:expense+=t.amount;
+  if(t.type==="income") income+=t.amount;
+  else expense+=t.amount;
  });
- balance.innerText="₹"+(income-expense);
- incomeEl.innerText="₹"+income;
- expenseEl.innerText="₹"+expense;
+
+ document.getElementById("income").innerText="₹"+income;
+ document.getElementById("expense").innerText="₹"+expense;
+ document.getElementById("balance").innerText="₹"+(income-expense);
 }
 
-/* ===== TABLE ===== */
 function renderTable(){
- let body=tableBody;
+ let body=document.getElementById("tableBody");
  let search=document.getElementById("search").value.toLowerCase();
 
  body.innerHTML="";
 
- state.transactions
- .filter(t=>state.filter==="all"||t.type===state.filter)
- .filter(t=>t.category.toLowerCase().includes(search))
- .forEach(t=>{
-  let i=state.transactions.indexOf(t);
+ let filtered = state.transactions
+  .filter(t=>state.filter==="all"||t.type===state.filter)
+  .filter(t=>t.category.toLowerCase().includes(search));
+
+ if(filtered.length===0){
+  body.innerHTML="<tr><td colspan='5'>No data</td></tr>";
+  return;
+ }
+
+ filtered.forEach((t)=>{
+  const index = state.transactions.indexOf(t);
+
   body.innerHTML+=`
   <tr>
   <td>${t.date}</td>
-  <td>₹${t.amount}</td>
+  <td class="${t.type==='income'?'income-text':'expense-text'}">₹${t.amount}</td>
   <td>${t.category}</td>
   <td>${t.type}</td>
-  <td><button onclick="deleteTransaction(${i})">Delete</button></td>
+  <td>
+  <button onclick="deleteTransaction(${index})">Delete</button>
+  </td>
   </tr>`;
  });
 }
 
-/* ===== FILTER ===== */
-function setFilter(f){
- state.filter=f;
+function setFilter(type){
+ state.filter=type;
  renderTable();
 }
 
-/* ===== ADD/DELETE ===== */
+function openModal(){
+ if(getRole()!=="admin") return alert("Admin only");
+ document.getElementById("modal").style.display="flex";
+}
+
+function closeModal(){
+ document.getElementById("modal").style.display="none";
+}
+
 function addTransaction(){
- let amount=+amountInput.value;
- let category=categoryInput.value;
- let type=type.value;
+ let amount = Number(document.getElementById("amount").value);
+ let category = document.getElementById("category").value;
+ let type = document.getElementById("type").value;
+
+ if(!amount || !category) return alert("Invalid input");
 
  state.transactions.push({
   date:new Date().toISOString().split("T")[0],
   amount, category, type
  });
 
+ closeModal();
  save();
  update();
- closeModal();
 }
 
 function deleteTransaction(i){
- if(confirm("Delete?")){
+ if(getRole()!=="admin") return alert("Admin only");
+
+ if(confirm("Delete this transaction?")){
   state.transactions.splice(i,1);
   save();
   update();
  }
 }
 
-/* ===== MODAL ===== */
-function openModal(){ modal.style.display="flex"; }
-function closeModal(){ modal.style.display="none"; }
+function sortByAmount(){
+ state.transactions.sort((a,b)=>b.amount-a.amount);
+ renderTable();
+}
 
-/* ===== CHARTS ===== */
-let pie,line;
 function drawCharts(){
- if(pie) pie.destroy();
- if(line) line.destroy();
 
- pie=new Chart(pieChart,{
+ if(pieChart) pieChart.destroy();
+ if(lineChart) lineChart.destroy();
+
+ pieChart = new Chart(document.getElementById("pieChart"),{
   type:"pie",
   data:{
    labels:state.transactions.map(t=>t.category),
-   datasets:[{data:state.transactions.map(t=>t.amount)}]
+   datasets:[{
+    data:state.transactions.map(t=>t.amount)
+   }]
   }
  });
 
- line=new Chart(lineChart,{
+ lineChart = new Chart(document.getElementById("lineChart"),{
   type:"line",
   data:{
    labels:state.transactions.map(t=>t.date),
-   datasets:[{data:state.transactions.map(t=>t.amount)}]
+   datasets:[{
+    label:"Trend",
+    data:state.transactions.map(t=>t.amount),
+    borderColor:"#00c6ff",
+    tension:0.4
+   }]
   }
  });
 }
 
-/* ===== EXTRA ===== */
-function exportCSV(){ alert("Exported!"); }
-function toggleTheme(){ document.body.classList.toggle("dark-theme"); }
-function resetData(){ localStorage.clear(); location.reload(); }
+function exportCSV(){
+ let csv="Date,Amount,Category,Type\n";
+ state.transactions.forEach(t=>{
+  csv+=`${t.date},${t.amount},${t.category},${t.type}\n`;
+ });
 
-/* ===== UPDATE ===== */
+ let blob=new Blob([csv],{type:"text/csv"});
+ let url=URL.createObjectURL(blob);
+ let a=document.createElement("a");
+ a.href=url;
+ a.download="transactions.csv";
+ a.click();
+}
+
+function toggleTheme(){
+ document.body.classList.toggle("dark-theme");
+}
+
+function getRole(){
+ return document.getElementById("role").value;
+}
+
 function update(){
  calculate();
  renderTable();
  drawCharts();
 }
 
-/* ===== INIT ===== */
-setTimeout(()=>{
- loader.style.display="none";
- update();
-},1000);
+update();
 
 </script>
 
 </body>
   </html>
-                                      
